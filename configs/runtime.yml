@@ -18,3 +18,14 @@ ema:
   type: ModelEMA
   decay: 0.9999
   warmups: 1000
+
+
+# Weights & Biases (wandb) configuration
+# Enable with --use-wandb flag or set use_wandb: True here
+use_wandb: False
+wandb:
+  project: deimv2-training
+  entity: null  # your wandb username or team name
+  name: null    # run name (auto-generated if null)
+  tags: []      # list of tags for organizing runs
+  notes: null   # run description/notes

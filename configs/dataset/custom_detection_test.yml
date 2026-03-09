@@ -28,8 +28,8 @@ val_dataloader:
   type: DataLoader
   dataset:
     type: CocoDetection
-    img_folder: datasets/pod-package-v7/images/val
-    ann_file: datasets/pod-package-v7/annotations/instances_val.json
+    img_folder: datasets/pod-package-test/images/val
+    ann_file: datasets/pod-package-test/annotations/instances_val.json
     return_masks: False
     transforms:
       type: Compose

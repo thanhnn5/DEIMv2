@@ -101,7 +101,7 @@ def train_one_epoch(self_lr_scheduler, lr_scheduler, model: torch.nn.Module, cri
         loss_dict_reduced = dist_utils.reduce_dict(loss_dict)
         loss_value = sum(loss_dict_reduced.values())
 
-        if not math.isfinite(loss_value):
+        if not math.isfinite(loss_value.item()):
             print("Loss is {}, stopping training".format(loss_value))
             print(loss_dict_reduced)
             sys.exit(1)
@@ -115,6 +115,23 @@ def train_one_epoch(self_lr_scheduler, lr_scheduler, model: torch.nn.Module, cri
                 writer.add_scalar(f'Lr/pg_{j}', pg['lr'], global_step)
             for k, v in loss_dict_reduced.items():
                 writer.add_scalar(f'Loss/{k}', v.item(), global_step)
+
+            # wandb logging
+            try:
+                import wandb
+                if wandb.run is not None:
+                    wandb_log = {
+                        'train/loss_total': loss_value.item(),
+                        'train/epoch': epoch,
+                        'train/global_step': global_step,
+                    }
+                    for j, pg in enumerate(optimizer.param_groups):
+                        wandb_log[f'train/lr_pg_{j}'] = pg['lr']
+                    for k, v in loss_dict_reduced.items():
+                        wandb_log[f'train/{k}'] = v.item()
+                    wandb.log(wandb_log, step=global_step)
+            except ImportError:
+                pass
 
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()

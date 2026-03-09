@@ -126,6 +126,16 @@ class DetSolver(BaseSolver):
                     for i, v in enumerate(test_stats[k]):
                         self.writer.add_scalar(f'Test/{k}_{i}'.format(k), v, epoch)
 
+                    # wandb logging for validation metrics
+                    try:
+                        import wandb
+                        if wandb.run is not None:
+                            wandb_log = {f'val/{k}_{i}': v for i, v in enumerate(test_stats[k])}
+                            wandb_log['val/epoch'] = epoch
+                            wandb.log(wandb_log, step=epoch)
+                    except ImportError:
+                        pass
+
                 if k in best_stat:
                     best_stat['epoch'] = epoch if test_stats[k][0] > best_stat[k] else best_stat['epoch']
                     best_stat[k] = max(best_stat[k], test_stats[k][0])

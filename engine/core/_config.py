@@ -78,6 +78,14 @@ class BaseConfig(object):
         self.summary_dir :str = None
         self.device : str = ''
 
+        # wandb configuration
+        self.use_wandb :bool = False
+        self.wandb_project :str = None
+        self.wandb_entity :str = None
+        self.wandb_run_name :str = None
+        self.wandb_tags :str = None
+        self.wandb_notes :str = None
+
     @property
     def model(self, ) -> nn.Module:
         return self._model
@@ -278,10 +286,15 @@ class BaseConfig(object):
     @property
     def writer(self) -> SummaryWriter:
         if self._writer is None:
-            if self.summary_dir:
-                self._writer = SummaryWriter(self.summary_dir)
-            elif self.output_dir:
-                self._writer = SummaryWriter(Path(self.output_dir) / 'summary')
+            # Check if wandb is enabled - if so, skip TensorBoard initialization
+            use_wandb = getattr(self, 'use_wandb', False)
+
+            # Only create TensorBoard writer if wandb is not enabled
+            if not use_wandb:
+                if self.summary_dir:
+                    self._writer = SummaryWriter(self.summary_dir)
+                elif self.output_dir:
+                    self._writer = SummaryWriter(Path(self.output_dir) / 'summary')
         return self._writer
 
     @writer.setter

@@ -71,6 +71,9 @@ class PadToSize(T.Pad):
         padding = params['padding']
         return F.pad(inpt, padding=padding, fill=fill, padding_mode=self.padding_mode)  # type: ignore[arg-type]
 
+    def transform(self, inpt: Any, params: Dict[str, Any]) -> Any:
+        return self._transform(inpt, params)
+
     def __call__(self, *inputs: Any) -> Any:
         outputs = super().forward(*inputs)
         if len(outputs) > 1 and isinstance(outputs[1], dict):
@@ -112,6 +115,9 @@ class ConvertBoxes(T.Transform):
             inpt = inpt / torch.tensor(spatial_size[::-1]).tile(2)[None]
 
         return inpt
+    
+    def transform(self, inpt: Any, params: Dict[str, Any]) -> Any:
+        return self._transform(inpt, params)
 
 
 @register()
@@ -135,3 +141,6 @@ class ConvertPILImage(T.Transform):
         inpt = Image(inpt)
 
         return inpt
+
+    def transform(self, inpt: Any, params: Dict[str, Any]) -> Any:
+        return self._transform(inpt, params)

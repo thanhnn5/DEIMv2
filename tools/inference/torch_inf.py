@@ -37,7 +37,11 @@ def draw(images, labels, boxes, scores, thrh=0.45):
 
 
 def process_image(model, device, file_path, size=(640, 640), vit_backbone=False):
-    im_pil = Image.open(file_path).convert('RGB')
+    # Use OpenCV loading to respect exif orientation
+    im = cv2.imread(file_path)
+    im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+    im_pil = Image.fromarray(im)
+
     w, h = im_pil.size
     orig_size = torch.tensor([[w, h]]).to(device)
 
@@ -118,7 +122,7 @@ def main(args):
         cfg.yaml_cfg['HGNetv2']['pretrained'] = False
 
     if args.resume:
-        checkpoint = torch.load(args.resume, map_location='cpu')
+        checkpoint = torch.load(args.resume, map_location='cpu', weights_only=False)
         if 'ema' in checkpoint:
             state = checkpoint['ema']['module']
         else:
