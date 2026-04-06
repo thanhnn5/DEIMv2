@@ -59,10 +59,10 @@ def apply_tflite_patches():
     from engine.deim.box_ops import box_xyxy_to_cxcywh
 
     # ------------------------------------------------------------------
-    # Patch 1: distance2bbox — replace abs() with sqrt(x*x)
+    # Patch 1: distance2bbox — replace abs() with double-ReLU
     # ------------------------------------------------------------------
     def _distance2bbox(points, distance, reg_scale):
-        reg_scale = (reg_scale * reg_scale).sqrt()          # abs() → sqrt(x²)
+        reg_scale = torch.relu(reg_scale) + torch.relu(-reg_scale)  # abs() → relu(x)+relu(-x)
         x1 = points[..., 0] - (0.5 * reg_scale + distance[..., 0]) * (points[..., 2] / reg_scale)
         y1 = points[..., 1] - (0.5 * reg_scale + distance[..., 1]) * (points[..., 3] / reg_scale)
         x2 = points[..., 0] + (0.5 * reg_scale + distance[..., 2]) * (points[..., 2] / reg_scale)
@@ -190,6 +190,20 @@ def main(args):
     print("PyTorch outputs:")
     for name, t in zip(['pred_logits', 'pred_boxes'], torch_out):
         print(f"  {name:10s}  shape={tuple(t.shape)}  dtype={t.dtype}")
+
+    # Check for unsupported ops before conversion
+    print("\nChecking for unsupported ops (find_culprits) ...")
+    from litert_torch.debug import find_culprits
+    culprits = list(find_culprits(model, sample_inputs))
+    if culprits:
+        print(f"  Found {len(culprits)} unsupported op(s):")
+        for c in culprits:
+            c.print_code()
+        raise RuntimeError(
+            "Unsupported ops detected — fix them before converting. "
+            "See output above for reproducible code snippets."
+        )
+    print("  No unsupported ops found.")
 
     # Convert to TFLite via litert-torch
     print("\nConverting model to TFLite ...")
