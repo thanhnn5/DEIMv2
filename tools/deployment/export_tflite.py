@@ -80,6 +80,8 @@ def apply_tflite_patches():
     def _lqe_forward(self, scores, pred_corners):
         B, L, _ = pred_corners.size()
         prob = F.softmax(pred_corners.reshape(B, L, 4, self.reg_max + 1), dim=-1)
+        # This does not strictly match topk, 
+        # but this only add small impact on detection accuracy (TOBE verified)
         prob_topk = prob[..., :self.k]                      # slice instead of topk
         stat = torch.cat([prob_topk, prob_topk.mean(dim=-1, keepdim=True)], dim=-1)
         quality_score = self.reg_conf(stat.reshape(B, L, -1))
