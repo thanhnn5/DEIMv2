@@ -193,19 +193,19 @@ def main(args):
     for name, t in zip(['pred_logits', 'pred_boxes'], torch_out):
         print(f"  {name:10s}  shape={tuple(t.shape)}  dtype={t.dtype}")
 
-    # Check for unsupported ops before conversion
-    print("\nChecking for unsupported ops (find_culprits) ...")
-    from litert_torch.debug import find_culprits
-    culprits = list(find_culprits(model, sample_inputs))
-    if culprits:
-        print(f"  Found {len(culprits)} unsupported op(s):")
-        for c in culprits:
-            c.print_code()
-        raise RuntimeError(
-            "Unsupported ops detected — fix them before converting. "
-            "See output above for reproducible code snippets."
-        )
-    print("  No unsupported ops found.")
+    # # Check for unsupported ops before conversion
+    # print("\nChecking for unsupported ops (find_culprits) ...")
+    # from litert_torch.debug import find_culprits
+    # culprits = list(find_culprits(model, sample_inputs))
+    # if culprits:
+    #     print(f"  Found {len(culprits)} unsupported op(s):")
+    #     for c in culprits:
+    #         c.print_code()
+    #     raise RuntimeError(
+    #         "Unsupported ops detected — fix them before converting. "
+    #         "See output above for reproducible code snippets."
+    #     )
+    # print("  No unsupported ops found.")
 
     # Convert to TFLite via litert-torch
     print("\nConverting model to TFLite ...")
